@@ -326,6 +326,11 @@ static bool check_aspect_ratio(float width_to_check, float height_to_check, floa
 		return width_to_check == width && height_to_check == height;
 	if (s_use_aspect_ratio_heuristics == 4)
 		return width_to_check == s_custom_resolution_filtering[0] && height_to_check == s_custom_resolution_filtering[1];
+	if (s_use_aspect_ratio_heuristics == 5 && s_custom_resolution_filtering[0] != 0 && s_custom_resolution_filtering[1] != 0)
+	{
+		width = static_cast<float>(s_custom_resolution_filtering[0]);
+		height = static_cast<float>(s_custom_resolution_filtering[1]);
+	}
 
 	float w_ratio = width / width_to_check;
 	float h_ratio = height / height_to_check;
@@ -463,7 +468,7 @@ static void on_init_device(device *device)
 	reshade::get_config_value(nullptr, "DEPTH", "FilterResolutionWidth", s_custom_resolution_filtering[0]);
 	reshade::get_config_value(nullptr, "DEPTH", "FilterResolutionHeight", s_custom_resolution_filtering[1]);
 
-	if (s_use_aspect_ratio_heuristics > 4)
+	if (s_use_aspect_ratio_heuristics > 5)
 		s_use_aspect_ratio_heuristics = 1;
 }
 static void on_init_command_list(command_list *cmd_list)
@@ -1134,7 +1139,8 @@ static void draw_settings_overlay(effect_runtime *runtime)
 		"Similar aspect ratio",
 		"Multiples of resolution (for DLSS or resolution scaling)",
 		"Match resolution exactly",
-		"Match custom width and height exactly"
+		"Match custom width and height exactly",
+		"Match custom aspect ratio"
 	};
 	if (ImGui::Combo("Aspect ratio heuristics", reinterpret_cast<int *>(&s_use_aspect_ratio_heuristics), heuristic_items, static_cast<int>(std::size(heuristic_items))))
 	{
@@ -1142,7 +1148,7 @@ static void draw_settings_overlay(effect_runtime *runtime)
 		force_reset = true;
 	}
 
-	if (s_use_aspect_ratio_heuristics == 4)
+	if (s_use_aspect_ratio_heuristics == 4 || s_use_aspect_ratio_heuristics == 5)
 	{
 		if (ImGui::InputInt2("Filter by width and height", reinterpret_cast<int *>(s_custom_resolution_filtering)))
 		{
